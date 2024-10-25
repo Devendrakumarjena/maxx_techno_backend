@@ -1,15 +1,23 @@
 package com.example.maxxengg.Controller;
 
-import com.example.maxxengg.Model.User;
+import com.example.maxxengg.Model.*;
+import com.example.maxxengg.Repository.RoleRepository;
 import com.example.maxxengg.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -17,6 +25,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     @Autowired
     private UserService userService;  // Using UserService interface
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     @PostMapping("/signup")
     public ResponseEntity<String> signUp(@RequestBody User user) {
@@ -46,5 +60,54 @@ public class AuthController {
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An error occurred while processing your request.");
         }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        try {
+            // Authenticate the user
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(), loginRequest.getPassword()
+                    )
+            );
+
+            // Set the authentication in the security context
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // Get the authenticated user
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+            // Get the user entity from the database
+            User user = userService.findByEmail(userDetails.getUsername()).orElseThrow();
+
+            // Return login success with roles
+            return ResponseEntity.ok(new LoginResponse("Login successful", userDetails.getUsername(),
+                    user.getRoles().stream().map(Role::getName).collect(Collectors.toSet())));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+        }
+    }
+
+    @PostMapping("/assign-role")
+    public ResponseEntity<String> assignRoleToUser(@RequestBody RoleAssignmentRequest request) {
+        // Find the user by email
+        User user = userService.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Find the role by name
+        Role role = roleRepository.findByName(request.getRoleName());
+        if (role == null) {
+            return ResponseEntity.badRequest().body("Role not found");
+        }
+
+        // Assign the role to the user
+        if (!user.getRoles().contains(role)) {
+            user.getRoles().add(role);
+            userService.saveUser(user); // Save the user with the new role
+        }
+
+        return ResponseEntity.ok("Role assigned successfully");
     }
 }
