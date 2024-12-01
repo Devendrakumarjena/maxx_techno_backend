@@ -42,7 +42,7 @@ public class AuthController {
                         .body("Email is already in use!");
             }
 
-            // Save the user (password will be encoded in the service layer)
+            // Save the user (password will be encoded in the service layer.....)
             userService.saveUser(user);
             return ResponseEntity
                     .status(HttpStatus.CREATED)
