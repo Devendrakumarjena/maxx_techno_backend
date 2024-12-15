@@ -2,8 +2,14 @@ package com.example.maxxengg.Controller;
 
 import com.example.maxxengg.Model.*;
 import com.example.maxxengg.Repository.RoleRepository;
-import com.example.maxxengg.Service.UserService;
+import com.example.maxxengg.Service.interfaces.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.security.authentication.AuthenticationManager;
+//import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+//import org.springframework.security.core.Authentication;
+//import org.springframework.security.core.context.SecurityContextHolder;
+//import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.stream.Collectors;
 
-
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -62,32 +68,11 @@ public class AuthController {
         }
     }
 
+
+
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        try {
-            // Authenticate the user
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.getEmail(), loginRequest.getPassword()
-                    )
-            );
-
-            // Set the authentication in the security context
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            // Get the authenticated user
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
-            // Get the user entity from the database
-            User user = userService.findByEmail(userDetails.getUsername()).orElseThrow();
-
-            // Return login success with roles
-            return ResponseEntity.ok(new LoginResponse("Login successful", userDetails.getUsername(),
-                    user.getRoles().stream().map(Role::getName).collect(Collectors.toSet())));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
-        }
+    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+        return userService.verifyUser(loginRequest);
     }
 
     @PostMapping("/assign-role")
