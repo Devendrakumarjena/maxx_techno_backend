@@ -39,7 +39,7 @@ public class WebSecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/*").permitAll() // Public endpoints
+                        .requestMatchers("/api/auth/*","/api/data/*").permitAll() // Public endpoints
                         .requestMatchers("/api/auth/assign-role").permitAll()
                         .anyRequest().authenticated() // Protect all other endpoints
                 )

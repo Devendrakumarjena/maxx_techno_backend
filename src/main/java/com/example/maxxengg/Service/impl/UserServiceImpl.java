@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<String> verifyUser(LoginRequest loginRequest) {
         Authentication auth= authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-        if(auth.isAuthenticated()){
+        if(auth.isAuthenticated()){ 
             return ResponseEntity.status(HttpStatus.OK).body(jwtService.generateToken(loginRequest.getEmail()));
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login failed, Username or Password is incorrect");
