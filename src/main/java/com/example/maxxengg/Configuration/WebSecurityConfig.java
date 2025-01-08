@@ -39,18 +39,16 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/*","/api/data/*").permitAll() // Public endpoints
-                        .requestMatchers("/api/auth/assign-role").permitAll()
-                        .anyRequest().authenticated() // Protect all other endpoints
-                )
-                .httpBasic(Customizer.withDefaults())
-                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-        ;
-
-
+            .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/*").permitAll() // Public endpoints
+                .requestMatchers("/api/auth/assign-role").permitAll()
+                .requestMatchers("/api/data/getData").permitAll() // Allow this specific endpoint
+                .anyRequest().denyAll()
+            )
+            .httpBasic(Customizer.withDefaults())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -59,7 +57,6 @@ public class WebSecurityConfig implements WebMvcConfigurer {
             AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -71,12 +68,10 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**") // Allow all endpoints
-                .allowedOrigins("*") // Replace with your Angular app URL
+        registry.addMapping("/**") // Apply to all endpoints
+                .allowedOrigins("http://localhost:4200") // Replace with your Angular app URL
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
-
-
 }
