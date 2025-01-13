@@ -39,11 +39,14 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/*").permitAll() // Public endpoints
+                .requestMatchers("/api/auth/*").permitAll() 
                 .requestMatchers("/api/auth/assign-role").permitAll()
-                .requestMatchers("/api/data/getData").permitAll() // Allow this specific endpoint
+                .requestMatchers("/api/data/getData").permitAll()
+                .requestMatchers("/api/data/getLatestRecord").permitAll() 
+                .requestMatchers("/api/data/getDataForDay").permitAll() 
+                .requestMatchers("/api/data/daily-consumption").permitAll() 
                 .anyRequest().denyAll()
             )
             .httpBasic(Customizer.withDefaults())
