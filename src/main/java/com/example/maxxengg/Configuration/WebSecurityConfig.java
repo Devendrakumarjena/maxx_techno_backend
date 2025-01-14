@@ -47,6 +47,8 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                 .requestMatchers("/api/data/getLatestRecord").permitAll() 
                 .requestMatchers("/api/data/getDataForDay").permitAll() 
                 .requestMatchers("/api/data/daily-consumption").permitAll() 
+                .requestMatchers("/liveData/**").permitAll()
+                .requestMatchers("/liveData/getLiveData").permitAll() 
                 .anyRequest().denyAll()
             )
             .httpBasic(Customizer.withDefaults())
