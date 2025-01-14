@@ -42,7 +42,7 @@ public class IOTDataController {
             List<IOTData> iotDataFromDB = iotDataRepository.findAllByOrderByIdDesc();
 
             if (iotDataFromDB.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(iotDataFromDB);
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "No data available"));
             }
 
             return ResponseEntity.ok(iotDataFromDB);
@@ -52,6 +52,7 @@ public class IOTDataController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
+
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
@@ -60,7 +61,7 @@ public class IOTDataController {
         try {
             List<IOTData> iotDataFromDB = iotDataRepository.findAllByOrderByIdDesc();
             if (iotDataFromDB.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(iotDataFromDB);
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "No data available"));
             }
 
             // Transform the data into the desired format
@@ -68,7 +69,7 @@ public class IOTDataController {
                 Map<String, Object> formattedEntry = new LinkedHashMap<>();
                 formattedEntry.put("imie", data.getImie());
                 formattedEntry.put("date", data.getDate());
-                
+
                 // Create a nested object for other data
                 Map<String, Object> iotLiveData = new LinkedHashMap<>();
                 iotLiveData.put("pv1Voltage", data.getPv1Voltage());
@@ -105,41 +106,52 @@ public class IOTDataController {
         try {
             List<IOTData> latestRecord = iotDataRepository.findTopByOrderByIdDesc();
             if (latestRecord.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(latestRecord);
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "No data available"));
             }
             return ResponseEntity.ok(latestRecord);
         } catch (Exception ex) {
-
             ex.printStackTrace();
-
             ErrorResponse errorResponse = new ErrorResponse("Failed to fetch data", ex.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
-
 
     @GetMapping("/daily-consumption")
     public ResponseEntity<?> getDailyConsumption(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month) {
         try {
+            // Get the current date and determine year/month
             LocalDate now = LocalDate.now();
             int currentYear = year != null ? year : now.getYear();
             int currentMonth = month != null ? month : now.getMonthValue();
     
+            // Fetch consumption data
             List<Map<String, Object>> consumptionData = iotDataService.getDailyConsumption(currentYear, currentMonth);
     
+            // Check if data is empty
             if (consumptionData.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT)
-                        .body(Map.of("message", "No data found for the given year and month."));
+                return ResponseEntity.ok(Map.of(
+                    "status", "no_data",
+                    "message", "No data found for the given year and month."
+                ));
             }
     
-            return ResponseEntity.ok(consumptionData); 
+            // Return the data if available
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "data", consumptionData
+            ));
         } catch (Exception e) {
-            
             e.printStackTrace();
+    
+            // Handle exceptions gracefully
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "An error occurred while processing the request.", "details", e.getMessage()));
+                    .body(Map.of(
+                        "status", "error",
+                        "message", "An error occurred while processing the request.",
+                        "details", e.getMessage()
+                    ));
         }
     }
     
