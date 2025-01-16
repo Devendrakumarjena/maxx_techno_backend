@@ -1,5 +1,6 @@
 package com.example.maxxengg.Service.impl;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,11 @@ public class IOTDataServiceImpl implements IOTDataService {
 
             return updatedRecord;
         }).toList();
+    }
+
+     @Override
+    public List<Object[]> getHourlyConsumptionByDate(LocalDate date) {
+        return iotDataRepository.findHourlyConsumptionByDate(date);
     }
 
 }

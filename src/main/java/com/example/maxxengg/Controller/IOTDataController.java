@@ -15,15 +15,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Slf4j
 @RestController
@@ -152,6 +152,42 @@ public class IOTDataController {
                         "message", "An error occurred while processing the request.",
                         "details", e.getMessage()
                     ));
+        }
+    }
+
+     @GetMapping("/hourly-consumption")
+    public ResponseEntity<?> getHourlyConsumption(@RequestParam String date) {
+        try {
+            // Parse the date
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate parsedDate = LocalDate.parse(date, formatter);
+
+            // Fetch hourly consumption data
+            List<Object[]> results = iotDataService.getHourlyConsumptionByDate(parsedDate);
+
+            // If no data is found, return an appropriate message
+            if (results.isEmpty()) {
+                return ResponseEntity.ok(Map.of(
+                    "status", "no_data",
+                    "message", "No data found for the given date."
+                ));
+            }
+
+            // Format the response
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("date", date);
+            response.put("data", results);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                "status", "error",
+                "message", "An error occurred while processing the request.",
+                "details", e.getMessage()
+            ));
         }
     }
     

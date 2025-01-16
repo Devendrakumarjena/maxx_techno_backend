@@ -22,4 +22,14 @@ public interface IOTDataRepository extends JpaRepository<IOTData, Integer> {
     "ORDER BY day")
     List<Map<String, Object>> findDailyConsumption(@Param("year") int year, @Param("month") int month);
 
+      // Fetch hourly consumption for a specific date
+      @Query("SELECT " +
+      "FUNCTION('HOUR', i.timestamp) AS hour, " +
+      "SUM(i.outputActivePower) AS totalPower " +
+      "FROM IoTData i " +
+      "WHERE DATE(i.timestamp) = :date " +
+      "GROUP BY FUNCTION('HOUR', i.timestamp) " +
+      "ORDER BY hour")
+      List<Object[]> findHourlyConsumptionByDate(java.time.LocalDate date);
+
 }
