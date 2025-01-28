@@ -41,7 +41,8 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/*","/api/data/*").permitAll() // Public endpoints
+                        .requestMatchers("/api/auth/*","/api/data/**").permitAll() // Public endpoints
+                        .requestMatchers("/api/data/getTodaysData").permitAll()
                         .requestMatchers("/api/auth/assign-role").permitAll()
                         .anyRequest().authenticated() // Protect all other endpoints
                 )
@@ -74,8 +75,8 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         registry.addMapping("/**") // Allow all endpoints
                 .allowedOrigins("*") // Replace with your Angular app URL
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowedHeaders("*");
+//                .allowCredentials(true);
     }
 
 
