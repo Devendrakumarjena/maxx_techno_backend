@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "iotdata",schema = "device_maxx")
+@Table(name = "iotdata",schema = "public")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
