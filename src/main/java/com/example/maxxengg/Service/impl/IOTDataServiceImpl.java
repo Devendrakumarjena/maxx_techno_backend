@@ -31,7 +31,7 @@ public class IOTDataServiceImpl implements IOTDataService {
             // Convert totalConsumption from watts to megawatts
             if (record.containsKey("totalConsumption")) {
                 double totalConsumptionWatts = ((Number) record.get("totalConsumption")).doubleValue();
-                double totalConsumptionMW = totalConsumptionWatts / 1_000_000; // Convert W to MW
+                double totalConsumptionMW = totalConsumptionWatts / 100; // Convert W to MW
                 updatedRecord.put("totalConsumption", totalConsumptionMW);
             }
 
