@@ -274,6 +274,13 @@ public class IOTDataController {
         }
     }
 
-
+    @GetMapping("/latest")
+    public ResponseEntity<?> getLatestDataByImie(@RequestParam String imie) {
+        Optional<IOTData> latestData = iotDataService.getLatestDataByImie(imie);
+        
+        return latestData
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(404).<IOTData>build());
+    }
 
 }

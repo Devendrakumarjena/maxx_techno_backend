@@ -4,9 +4,11 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.example.maxxengg.Model.IOTData;
 import com.example.maxxengg.Repository.IOTDataRepository;
 import com.example.maxxengg.Service.interfaces.IOTDataService;
 
@@ -42,6 +44,12 @@ public class IOTDataServiceImpl implements IOTDataService {
     @Override
     public List<Object[]> getHourlyConsumptionByDate(String date) {
         return iotDataRepository.findHourlyConsumptionByDate(date);
+    }
+
+    @Override
+    public Optional<IOTData> getLatestDataByImie(String imie) {
+        // TODO Auto-generated method stub
+        return Optional.ofNullable(iotDataRepository.findLatestDataByImie(imie));
     }
 
 }

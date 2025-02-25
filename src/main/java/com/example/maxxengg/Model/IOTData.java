@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "iotdata",schema = "public")
@@ -89,5 +90,9 @@ public class IOTData {
 
     @Column(name = "inverter_bus_voltage")
     private Long inverterBusVoltage;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
 
 }

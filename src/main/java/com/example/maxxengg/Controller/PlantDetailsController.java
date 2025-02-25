@@ -18,11 +18,6 @@ public class PlantDetailsController {
     @Autowired
     private PlantDetailsService plantDetailsService;
 
-    @PostMapping
-    public Plantdetails addPlant(@RequestBody Plantdetails plant) {
-        return plantDetailsService.addPlant(plant);
-    }
-
     @GetMapping("/getAllPlants")
     public ResponseEntity<?> getAllPlants() {
         List<Plantdetails> plants = plantDetailsService.getAllPlants();
@@ -31,6 +26,16 @@ public class PlantDetailsController {
                     .body(Map.of("message", "No plant details available"));
         }
         return ResponseEntity.ok(plants);
+    }
+
+    @PostMapping("/addPlant")
+    public ResponseEntity<?> addNewPlant(@RequestBody Plantdetails plant) {
+        try {
+            Plantdetails savedPlant = plantDetailsService.addPlant(plant);
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Plant added successfully", "data", savedPlant));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Failed to add plant", "error", e.getMessage()));
+        }
     }
 
 }

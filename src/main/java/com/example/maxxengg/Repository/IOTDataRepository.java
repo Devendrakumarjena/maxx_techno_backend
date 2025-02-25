@@ -51,4 +51,8 @@ public interface IOTDataRepository extends JpaRepository<IOTData, Integer> {
     )
     List<Integer> findYearlyData(String year);
 
+    @Query("SELECT i FROM IOTData i WHERE i.imie = :imie ORDER BY i.createdAt DESC LIMIT 1")
+        IOTData findLatestDataByImie(@Param("imie") String imie);
+
+
 }
