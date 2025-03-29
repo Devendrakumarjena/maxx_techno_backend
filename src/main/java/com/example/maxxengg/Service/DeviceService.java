@@ -19,7 +19,11 @@ public class DeviceService {
     }
 
     public List<Device> getAllDevices() {
-        return deviceRepository.findAll();
+        List<Device> devices = deviceRepository.findAll();
+        devices.forEach(device -> {
+            device.setDeviceId("MT-" + device.getDeviceId());
+        });
+        return devices;
     }
 
     public List<Device> getDevicesByPlant(Integer plantId) {
