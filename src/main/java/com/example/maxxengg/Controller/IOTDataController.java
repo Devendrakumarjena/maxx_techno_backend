@@ -1,7 +1,9 @@
 package com.example.maxxengg.Controller;
 
+import com.example.maxxengg.Model.Alert;
 import com.example.maxxengg.Model.ErrorResponse;
 import com.example.maxxengg.Model.IOTData;
+import com.example.maxxengg.Repository.AlertRepository;
 import com.example.maxxengg.Repository.IOTDataRepository;
 import com.example.maxxengg.Service.interfaces.IOTDataService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,6 +28,12 @@ public class IOTDataController {
 
     @Autowired
     IOTDataService iotDataService;
+
+    @Autowired
+    AlertRepository alertRepository;
+
+
+
 
 
     @GetMapping("/getData")
@@ -53,10 +62,32 @@ public class IOTDataController {
     @GetMapping("/getLatestRecord")
     public ResponseEntity<?> getLatestRecord() {
         try {
-            List<IOTData> latestRecord = iotDataRepository.findTopByOrderByIdDesc();
+            List<IOTData> latestRecord = iotDataRepository.findTopByOrderByDateDesc();
+            if (iotDataService.findIssue(latestRecord.get(0).getDate())){
+                List<Alert> alert=alertRepository.findByImeiOrderByCreatedAtDesc(latestRecord.get(0).getImie());
+
+                if (alert.isEmpty() || (!alert.isEmpty() && alert.get(0).getIsResolved())){
+                    Alert newAlert=new Alert();
+                    newAlert.setDescription("Data not receiving");
+                    newAlert.setStatus("pending");
+                    newAlert.setIsResolved(false);
+                    newAlert.setImei(latestRecord.get(0).getImie());
+                    alertRepository.save(newAlert);
+                }
+            }
+            else{
+                List<Alert> alert=alertRepository.findByImeiOrderByCreatedAtDesc(latestRecord.get(0).getImie());
+                if (!alert.isEmpty() && !alert.get(0).getIsResolved() && !iotDataService.findIssue(latestRecord.get(0).getDate())){
+                    Alert updatedAlert=alert.get(0);
+                    updatedAlert.setStatus("resolved");
+                    updatedAlert.setIsResolved(true);
+                    alertRepository.save(updatedAlert);
+                }
+            }
             if (latestRecord.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "No data available"));
             }
+            log.info("latest record is "+latestRecord.get(0).getDate());
             return ResponseEntity.ok(latestRecord);
         } catch (Exception ex) {
 
@@ -193,22 +224,15 @@ public class IOTDataController {
     @GetMapping("/getYesterdayDetails")
     public ResponseEntity<?> getYesterdayDetails() {
         try {
-            LocalDate today=LocalDate.now();
-            String yesterday=String.valueOf(today.getYear());
-            if(today.getMonthValue()<10){
-                yesterday+=".0"+today.getMonthValue();
-            }
-            else{
-                yesterday+="."+today.getMonthValue();
-            }
-            if(today.getDayOfMonth()<10){
-                yesterday+=".0"+(today.getDayOfMonth()-1);
-            }
-            else{
-                yesterday+="."+(today.getDayOfMonth()-1);
-            }
-//            String yesterday=String.valueOf(today.getYear())+"."+String.valueOf(today.getMonthValue())+"."+String.valueOf(today.getDayOfMonth()-1);
-            log.info("yesterday "+yesterday);
+
+            ZoneId indiaZone = ZoneId.of("Asia/Kolkata");
+            LocalDate yesterdayDate = LocalDate.now(indiaZone).minusDays(1);
+            System.out.println("Yesterday's date in India: " + yesterdayDate);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+            String yesterday = yesterdayDate.format(formatter);
+
+
             List<IOTData> latestRecord = iotDataRepository.findYesterdayGenerationDetails(yesterday);
             if (latestRecord.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "No data available"));
@@ -228,7 +252,7 @@ public class IOTDataController {
         try {
             // Parse the date
             LocalDate today = LocalDate.now();
-            log.info("today "+today);
+
 
             // Fetch hourly consumption data
             List<Integer> monthlyResults = iotDataRepository.findMonthlyData(String.valueOf(today.getMonthValue()),String.valueOf(today.getYear()));
@@ -248,7 +272,7 @@ public class IOTDataController {
             results.add(yearlyResults.size());
 
 
-            log.info("data "+results);
+
             // If no data is found, return an appropriate message
             if (results.isEmpty()) {
                 return ResponseEntity.ok(Map.of(

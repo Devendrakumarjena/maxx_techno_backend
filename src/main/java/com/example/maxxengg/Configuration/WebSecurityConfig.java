@@ -46,6 +46,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                         .requestMatchers("/api/auth/assign-role").permitAll()
                         .requestMatchers("/api/plants/**").permitAll()
                         .requestMatchers("/api/devices/**").permitAll()
+                        .requestMatchers("/api/alerts/**").permitAll()
                         .requestMatchers("/api/data/latest").permitAll()
                         .anyRequest().authenticated() // Protect all other endpoints
                 )

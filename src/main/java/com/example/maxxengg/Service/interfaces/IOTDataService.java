@@ -14,4 +14,6 @@ public interface IOTDataService {
     List<Object[]> getHourlyConsumptionByDate(String date);
 
     Optional<IOTData> getLatestDataByImie(String imie);
+
+    Boolean findIssue(String inputDateTimeStr);
 }

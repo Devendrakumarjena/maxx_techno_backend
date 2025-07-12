@@ -1,6 +1,10 @@
 package com.example.maxxengg.Service.impl;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +54,35 @@ public class IOTDataServiceImpl implements IOTDataService {
     public Optional<IOTData> getLatestDataByImie(String imie) {
         // TODO Auto-generated method stub
         return Optional.ofNullable(iotDataRepository.findLatestDataByImie(imie));
+    }
+
+    @Override
+    public Boolean findIssue(String inputDateTimeStr){
+        DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd.HH.mm.ss");
+        try {
+            // Parse the input time string
+            LocalDateTime inputTime = LocalDateTime.parse(inputDateTimeStr, FORMATTER);
+            ZoneId indiaZone = ZoneId.of("Asia/Kolkata");
+            LocalDateTime now = LocalDateTime.now(indiaZone);
+//            LocalDateTime now = LocalDateTime.now();
+            System.out.println("Indian time "+now);
+            // Condition 1: Time between 7AM and 6PM (i.e., 07:00 to 18:00)
+            int hour = inputTime.getHour();
+            boolean isWithinDaytime = hour >= 6 && hour < 18;
+
+            // Condition 2: Time difference > 2 minutes
+            long diffInSeconds = Math.abs(Duration.between(inputTime, now).getSeconds());
+            boolean isMoreThanTwoMinutes = diffInSeconds > 600;
+
+            // Return true only if both conditions are satisfied
+            return isWithinDaytime && isMoreThanTwoMinutes;
+
+        } catch (Exception e) {
+            // Handle parse errors gracefully
+            System.err.println("Invalid datetime format: " + inputDateTimeStr);
+            return false;
+        }
+
     }
 
 }

@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface IOTDataRepository extends JpaRepository<IOTData, Integer> {
     List<IOTData> findAllByOrderByIdDesc();
 
-    List<IOTData> findTopByOrderByIdDesc();
+    List<IOTData> findTopByOrderByDateDesc();
 
     @Query("SELECT DATE(TO_DATE(i.date, 'YYYY.MM.DD.HH24.MI.SS')) AS day, " +
             "MAX(i.todayProduction) AS totalConsumption " +
